@@ -1,6 +1,8 @@
 #
 #   xml_preferences.py
 #
+import io
+
 import xml.parsers.expat
 import xml.dom.minidom
 import xml.sax.saxutils
@@ -26,12 +28,22 @@ class XmlPreferences:
         with open( self.filename, encoding='utf-8' ) as f:
             return self.loadString( f.read() )
 
-    def saveAs( self, filename ):
+    def saveAs( self, scheme_node, filename ):
         self.filename = filename
-        self.save()
+        self.save( scheme_node )
 
-    def save( self ):
-        pass
+    def save( self, scheme_node ):
+        with open( self.filename, 'w', encoding='utf-8' ) as f:
+            self.saveToFile( scheme_node, f )
+
+    def saveToString( self, scheme_node ):
+        with io.StringIO() as f:
+            self.saveToFile( scheme_node, f )
+            return f.getvalue()
+
+    def saveToFile( self, scheme_node, f ):
+        f.write( '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n' )
+        self.__saveNode( f, self.scheme.document_root, scheme_node )
 
     def loadString( self, text ):
         try:
@@ -56,7 +68,7 @@ class XmlPreferences:
         else:
             node = scheme_node.factory()
 
-        # store all attribute values in the node
+        # load all attribute values in the node
         for attr_name in scheme_node.all_attribute_names:
             # assume the factory creates an object that defaults all attributes
             if xml_parent.hasAttribute( attr_name ):
@@ -83,6 +95,53 @@ class XmlPreferences:
         node.finaliseNode()
 
         return node
+
+    def __saveNode( self, f, scheme_node, data_node, indent=0 ):
+        f.write( '%*s' '<%s' %
+            (indent, '', scheme_node.element_name) )
+
+        # deal with the special key_attribute
+        if scheme_node.key_attribute is not None:
+            value = data_node.getAttr( scheme_node.key_attribute )
+            f.write( ' %s=%s' %
+                (scheme_node.key_attribute
+                ,xml.sax.saxutils.quoteattr( value )) )
+
+        # save all attribute values that are not None
+        for attr_name in sorted( scheme_node.all_attribute_names ):
+            value = data_node.getAttr( attr_name )
+            if value is not None:
+                f.write( ' %s=%s' %
+                    (attr_name
+                    ,xml.sax.saxutils.quoteattr( value )) )
+
+        if len( scheme_node.all_child_scheme_nodes ) == 0:
+            f.write( '/>' '\n' )
+            return
+
+        f.write( '>' '\n' )
+
+        # write child elements
+        for child_name in sorted( scheme_node.all_child_scheme_nodes ):
+            child_scheme = scheme_node.all_child_scheme_nodes[ child_name ]
+
+            if child_scheme.element_plurality:
+                if child_scheme.key_attribute is not None:
+                    all_child_nodes = data_node.getChildNodeMap( child_scheme.element_name )
+
+                else:
+                    all_child_nodes = data_node.getChildNodeList( child_scheme.element_name )
+
+            else:
+                child_node = data_node.getChildNode( child_scheme.element_name )
+                all_child_nodes = []
+                if child_node is not None:
+                    all_child_nodes.append( child_node )
+
+            for child_data_node in all_child_nodes:
+               self.__saveNode( f, child_scheme, child_data_node, indent+4 )
+
+        f.write( '%*s' '</%s>' '\n' % (indent, '', scheme_node.element_name) )
 
 class Scheme:
     def __init__( self, document_root ):
@@ -150,6 +209,7 @@ class PreferencesNode:
         # called after all attributes and children have been set
         pass
 
+    # --- load ---
     def setAttr( self, name, value ):
         setattr( self, name, value )
 
@@ -160,8 +220,22 @@ class PreferencesNode:
         getattr( self, name ).append( node )
 
     def setChildNodeMap( self, name, key, node ):
-        getattr( self, name )[ key ] = node 
+        getattr( self, name )[ key ] = node
 
+    # --- save ---
+    def getAttr( self, name ):
+        return getattr( self, name )
+
+    def getChildNode( self, name ):
+        return getattr( self, name )
+
+    def getChildNodeList( self, name ):
+        return getattr( self, name )
+
+    def getChildNodeMap( self, name ):
+        return getattr( self, name ).values()
+
+    # --- debug ---
     def dumpNode( self, f, indent=0, prefix='' ):
         f.write( '%*s' '%s%r:' '\n' % (indent, '', prefix, self) )
         indent += 4
