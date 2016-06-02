@@ -103,7 +103,7 @@ def main( argv ):
     print( '# --- saveToFile ---' )
     prefs.window.setColour( 'bold', '99,0,99', '00,99,00' )
 
-    print( xml_prefs.saveToFile( prefs, sys.stderr ) )
+    xml_prefs.saveToFile( prefs, sys.stderr )
 
     return 0
 
