@@ -95,6 +95,12 @@ Classes
 
         Derive from *PreferencesNode* to initialise the variables used to hold the parsed XML preferences.
 
+    finaliseNode( self )
+
+        Called after all attributes and child nodes have been set on this node.
+
+        Use this call to default any missing preferences.
+
     setAttr( self, name, value )
 
         Called to save the value of an attribute. The default implemention is:
