@@ -112,6 +112,17 @@ class XmlPreferences:
         for attr_name in sorted( scheme_node.all_attribute_names ):
             value = data_node.getAttr( attr_name )
             if value is not None:
+                # do simple coersion of value to str
+                # if this is not what the user wants they
+                # need to override the getAttr methods to
+                # return a str encoding their data as they
+                # require.
+                if type(value) == bytes:
+                    value = value.decode('utf-8')
+
+                elif type(value) != str:
+                    value = str(value)
+
                 f.write( ' %s=%s' %
                     (attr_name
                     ,xml.sax.saxutils.quoteattr( value )) )
