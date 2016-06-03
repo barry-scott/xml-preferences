@@ -23,13 +23,14 @@ class XmlPreferences:
         self.filename = None
 
     def load( self, filename ):
-        self.filename = filename
+        # allow pathlib.Path as filename
+        self.filename = str(filename)
 
         with open( self.filename, encoding='utf-8' ) as f:
             return self.loadString( f.read() )
 
     def saveAs( self, data_node, filename ):
-        self.filename = filename
+        self.filename = str(filename)
         self.save( data_node )
 
     def save( self, data_node ):
