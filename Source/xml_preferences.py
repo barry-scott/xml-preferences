@@ -28,22 +28,22 @@ class XmlPreferences:
         with open( self.filename, encoding='utf-8' ) as f:
             return self.loadString( f.read() )
 
-    def saveAs( self, scheme_node, filename ):
+    def saveAs( self, data_node, filename ):
         self.filename = filename
-        self.save( scheme_node )
+        self.save( data_node )
 
-    def save( self, scheme_node ):
+    def save( self, data_node ):
         with open( self.filename, 'w', encoding='utf-8' ) as f:
-            self.saveToFile( scheme_node, f )
+            self.saveToFile( data_node, f )
 
-    def saveToString( self, scheme_node ):
+    def saveToString( self, data_node ):
         with io.StringIO() as f:
-            self.saveToFile( scheme_node, f )
+            self.saveToFile( data_node, f )
             return f.getvalue()
 
-    def saveToFile( self, scheme_node, f ):
+    def saveToFile( self, data_node, f ):
         f.write( '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n' )
-        self.__saveNode( f, self.scheme.document_root, scheme_node )
+        self.__saveNode( f, self.scheme.document_root, data_node )
 
     def loadString( self, text ):
         try:
@@ -77,8 +77,8 @@ class XmlPreferences:
         # look for supported child nodes
         for xml_child in xml_parent.childNodes:
             if xml_child.nodeType == xml.dom.minidom.Node.ELEMENT_NODE:
-                if scheme_node.hasSchemeChild( xml_child.tagName ):
-                    scheme_child_node = scheme_node.getSchemeChild( xml_child.tagName )
+                if scheme_node._hasSchemeChild( xml_child.tagName ):
+                    scheme_child_node = scheme_node._getSchemeChild( xml_child.tagName )
                     child_node = self.__loadNode( scheme_child_node, xml_child )
 
                     if scheme_child_node.element_plurality:
@@ -195,10 +195,10 @@ class SchemeNode:
     def __lshift__( self, scheme_node ):
         return self.addSchemeChild( scheme_node )
 
-    def hasSchemeChild( self, name ):
+    def _hasSchemeChild( self, name ):
         return name in self.all_child_scheme_nodes
 
-    def getSchemeChild( self, name ):
+    def _getSchemeChild( self, name ):
         return self.all_child_scheme_nodes[ name ]
 
 class PreferencesNode:
