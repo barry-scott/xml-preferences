@@ -33,7 +33,7 @@ setup(
 
     version=open('../version.txt').read().strip(),
 
-    description='xml-preferences encapsulates struct.unpack() with results accessed by name',
+    description='xml-preferences reads and writes preferences infomation from XML files',
     long_description=long_description,
 
     # The project's main homepage.
