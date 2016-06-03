@@ -18,7 +18,7 @@ with codecs.open(os.path.join(here, 'README.rst'), encoding='utf-8') as f:
     long_description = f.read()
 
 def getDevStatusFromVersion():
-    version = open('version.txt').read().strip()
+    version = open('../version.txt').read().strip()
     if 'a' in version:
         return 'Development Status :: 3 - Alpha'
 
@@ -31,7 +31,7 @@ def getDevStatusFromVersion():
 setup(
     name='xml-preferences',
 
-    version=open('version.txt').read().strip(),
+    version=open('../version.txt').read().strip(),
 
     description='xml-preferences encapsulates struct.unpack() with results accessed by name',
     long_description=long_description,
@@ -69,5 +69,5 @@ setup(
     # What does your project relate to?
     keywords='development',
 
-    py_modules=["Source/xml_preferences"],
+    py_modules=["xml_preferences"],
 )
