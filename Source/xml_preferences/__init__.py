@@ -1,5 +1,5 @@
 #
-#   xml_preferences.py
+#   xml_preferences/__init__.py
 #
 import io
 
