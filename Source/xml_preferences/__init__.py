@@ -90,7 +90,7 @@ class XmlPreferences:
                             node.setChildNodeList( scheme_child_node.collection_name, child_node )
 
                     else:
-                        node.setChildNode( xml_child.tagName, child_node )
+                        node.setChildNode( scheme_child_node.store_as, child_node )
 
         # tell the node that it has all attributes and child node
         node.finaliseNode()
@@ -109,7 +109,7 @@ class XmlPreferences:
                 ,xml.sax.saxutils.quoteattr( value )) )
 
         # save all attribute values that are not None
-        for attr_name in sorted( scheme_node.all_attribute_names ):
+        for attr_name in scheme_node.all_attribute_names:
             value = data_node.getAttr( attr_name )
             if value is not None:
                 # do simple coersion of value to str
@@ -134,7 +134,7 @@ class XmlPreferences:
         f.write( '>' '\n' )
 
         # write child elements
-        for child_name in sorted( scheme_node.all_child_scheme_nodes ):
+        for child_name in scheme_node.all_child_scheme_nodes:
             child_scheme = scheme_node.all_child_scheme_nodes[ child_name ]
 
             if child_scheme.element_plurality:
@@ -145,7 +145,7 @@ class XmlPreferences:
                     all_child_nodes = data_node.getChildNodeList( child_scheme.collection_name )
 
             else:
-                child_node = data_node.getChildNode( child_scheme.element_name )
+                child_node = data_node.getChildNode( child_scheme.store_as )
                 all_child_nodes = []
                 if child_node is not None:
                     all_child_nodes.append( child_node )
@@ -174,9 +174,11 @@ class SchemeNode:
     # when plurality is true the nodes can be store in a list of a dict.
     # set the key_attribute to store in a dict
     #
-    def __init__( self, factory, element_name, all_attribute_names=None, element_plurality=False, key_attribute=None, collection_name=None ):
+    def __init__( self, factory, element_name, all_attribute_names=None, element_plurality=False, key_attribute=None, collection_name=None, store_as=None ):
+        self.parent_node = None
         self.factory = factory
         self.element_name = element_name
+        self.store_as = store_as if store_as is not None else self.element_name
         self.element_plurality = element_plurality
 
         if all_attribute_names is not None:
@@ -189,7 +191,9 @@ class SchemeNode:
             self.all_attribute_names = tuple()
 
         self.key_attribute = key_attribute
-        self.collection_name = collection_name if collection_name is not None else element_name
+
+        # fix up when parent is set.
+        self.collection_name = collection_name
 
         # convient defaulting
         if self.key_attribute is not None:
@@ -198,22 +202,32 @@ class SchemeNode:
         self.all_child_scheme_nodes = {}
 
         assert key_attribute is None or key_attribute not in self.all_attribute_names, 'must not put key_attribute in all_attribute_names'
-        assert self.element_plurality or (not self.element_plurality and collection_name is None), 'collection_name is only valid with element_plurality=True'
 
     def __repr__( self ):
         return '<SchemeNode: %s>' % (self.element_name,)
 
     def dumpScheme( self, f, indent ):
-        f.write( '%*s' 'SchemeNode %s plurality %r key %r attr %r' '\n' %
-                (indent, '', self.element_name, self.element_plurality, self.key_attribute, self.all_attribute_names) )
+        f.write( '%*s' 'SchemeNode %s store_as %r plurality %r key %r attr %r coll %r parent %r' '\n' %
+                (indent, '', self.element_name, self.store_as, self.element_plurality, self.key_attribute, self.all_attribute_names, self.collection_name, self.parent_node) )
 
-        for child_name in sorted(  self.all_child_scheme_nodes ):
+        for child_name in self.all_child_scheme_nodes:
             child = self.all_child_scheme_nodes[ child_name ]
             child.dumpScheme( f, indent+4 )
 
     def addSchemeChild( self, scheme_node ):
         self.all_child_scheme_nodes[ scheme_node.element_name ] = scheme_node
+        scheme_node.setParentSchemeNode( self )
         return self
+
+    def setParentSchemeNode( self, parent_node ):
+        self.parent_node = parent_node
+
+        if issubclass( self.parent_node.factory, PreferencesCollectionNode ):
+            assert self.collection_name is None, 'collection_name cannot be set if parent is a collection node.'
+            self.collection_name = 'data'
+
+        elif self.collection_name is None and self.element_plurality:
+            self.collection_name = self.store_as
 
     def __lshift__( self, scheme_node ):
         return self.addSchemeChild( scheme_node )
@@ -275,3 +289,77 @@ class PreferencesNode:
 
             else:
                 f.write( '%*s' '%s -> %r' '\n' % (indent, '', name, value) )
+
+# implement methods common to dict() and list()
+class PreferencesCollectionNode(PreferencesNode):
+    def __init__( self ):
+        self.data = {}
+
+    def __len__( self ):
+        return len(self.data)
+
+    def __getitem__( self, index ):
+        return self.data[ index ]
+
+    def __setitem__( self, index, value ):
+        self.data[ index ] = value
+
+    def __delitem__( self, index ):
+        del self.data[ index ]
+
+    def __iter__( self, index ):
+        return iter( self.data )
+
+    def __contains__( self, index ):
+        return index in self.data
+
+class PreferencesMapNode(PreferencesCollectionNode):
+    def __init__( self ):
+        super().__init__()
+        self.data = {}
+
+        self.keys = self.data.keys
+        self.values = self.data.values
+        self.items = self.data.items
+        self.get = self.data.get
+        self.clear = self.data.clear
+        self.setdefault = self.data.setdefault
+        self.pop = self.data.pop
+        self.popitem = self.data.popitem
+        self.copy = self.data.copy
+        self.update = self.data.update
+
+    def __repr__( self ):
+        return '<%s %r>' % (self.__class__.__name__, list(self.data.keys()))
+
+class PreferencesListNode(PreferencesCollectionNode):
+    def __init__( self ):
+        super().__init__()
+
+        self.append = self.data.append
+        self.count = self.data.count
+        self.index = self.data.index
+        self.extend = self.data.extend
+        self.insert = self.data.insert
+        self.pop = self.data.pop
+        self.remove = self.data.remove
+        self.reverse = self.data.reverse
+        self.sort = self.data.sort
+
+    def __add__( self, other ):
+        return operator.__add__( self.data, other )
+
+    def __radd__( self, other ):
+        return operator.__radd__( self.data, other )
+
+    def __iadd__( self, other ):
+        return operator.__iadd__( self.data, other )
+
+    def __mul__( self, other ):
+        return operator.__mul__( self.data, other )
+
+    def __rmul__( self, other ):
+        return operator.__rmul__( self.data, other )
+
+    def __imul__( self, other ):
+        return operator.__imul__( self.data, other )

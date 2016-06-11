@@ -4,7 +4,7 @@
 
 import sys
 
-from xml_preferences import XmlPreferences, Scheme, SchemeNode, PreferencesNode
+from xml_preferences import XmlPreferences, Scheme, SchemeNode, PreferencesNode, PreferencesMapNode
 
 class Preferences(PreferencesNode):
     def __init__( self ):
@@ -38,7 +38,7 @@ class Window(PreferencesNode):
 
         self.geometry = None
 
-        self.all_colours = {}
+        self.all_colours = None
 
     def setColour( self, name, fg, bg ):
         if name not in self.all_colours:
@@ -50,6 +50,14 @@ class Window(PreferencesNode):
 
     def getChildNodeMap( self, name ):
         return sorted( self.all_colours.values() )
+
+    def finaliseNode( self ):
+        if self.all_colours is None:
+            self.all_colours = ColoursCollection()
+
+class ColoursCollection(PreferencesMapNode):
+    def __init__( self ):
+        super().__init__()
 
 class Colour(PreferencesNode):
     xml_attributes = ('fg', 'bg')
@@ -67,21 +75,27 @@ class Colour(PreferencesNode):
     def __lt__( self, other ):
         return self.name < other.name
 
-scheme = (Scheme(
-        (SchemeNode( Preferences, 'preferences',  )
+scheme = (
+    Scheme
+    (
+        SchemeNode( Preferences, 'preferences',  )
         << SchemeNode( Edit, 'edit' )
         << SchemeNode( View, 'view' )
         <<  (SchemeNode( Window, 'window' )
-            << SchemeNode( Colour, 'colour', key_attribute='name', collection_name='all_colours' )
+            <<  (SchemeNode( ColoursCollection, 'colours', store_as='all_colours' )
+                << SchemeNode( Colour, 'colour', key_attribute='name' )
+                )
             )
-        )
-    ) )
+    )
+)
 
 test_xml_1 = '''<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <preferences>
     <edit program="fred" />
     <window>
-        <colour name="normal" fg="1,2,3" bg="4,5,6"/>
+        <colours>
+            <colour name="normal" fg="1,2,3" bg="4,5,6"/>
+        </colours>
     </window>
 </preferences>
 '''
