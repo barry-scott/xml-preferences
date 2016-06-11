@@ -15,6 +15,8 @@ class Preferences(PreferencesNode):
         self.window = None
 
 class Edit(PreferencesNode):
+    xml_attributes = ('program', 'options')
+
     def __init__( self ):
         super().__init__()
 
@@ -22,12 +24,15 @@ class Edit(PreferencesNode):
         self.options = None
 
 class View(PreferencesNode):
+    xml_attributes = ('mode',)
+
     def __init__( self ):
         super().__init__()
 
         self.mode = None
 
 class Window(PreferencesNode):
+    xml_attributes = ('geometry',)
     def __init__( self ):
         super().__init__()
 
@@ -47,6 +52,8 @@ class Window(PreferencesNode):
         return sorted( self.all_colours.values() )
 
 class Colour(PreferencesNode):
+    xml_attributes = ('fg', 'bg')
+
     def __init__( self, name ):
         super().__init__()
 
@@ -62,10 +69,10 @@ class Colour(PreferencesNode):
 
 scheme = (Scheme(
         (SchemeNode( Preferences, 'preferences',  )
-        << SchemeNode( Edit, 'edit', ('program', 'options') )
-        << SchemeNode( View, 'view', ('mode',) )
-        <<  (SchemeNode( Window, 'window', ('geometry',))
-            << SchemeNode( Colour, 'colour', ('fg', 'bg'), key_attribute='name', collection_name='all_colours' )
+        << SchemeNode( Edit, 'edit' )
+        << SchemeNode( View, 'view' )
+        <<  (SchemeNode( Window, 'window' )
+            << SchemeNode( Colour, 'colour', key_attribute='name', collection_name='all_colours' )
             )
         )
     ) )

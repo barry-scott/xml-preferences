@@ -178,7 +178,16 @@ class SchemeNode:
         self.factory = factory
         self.element_name = element_name
         self.element_plurality = element_plurality
-        self.all_attribute_names = all_attribute_names if all_attribute_names is not None else tuple()
+
+        if all_attribute_names is not None:
+            self.all_attribute_names = all_attribute_names
+
+        elif hasattr( self.factory, 'xml_attributes' ):
+            self.all_attribute_names = self.factory.xml_attributes
+
+        else:
+            self.all_attribute_names = tuple()
+
         self.key_attribute = key_attribute
         self.collection_name = collection_name if collection_name is not None else element_name
 
@@ -186,9 +195,10 @@ class SchemeNode:
         if self.key_attribute is not None:
             self.element_plurality = True
 
-        assert key_attribute is None or key_attribute not in self.all_attribute_names, 'must not put key_attribute in all_attribute_names'
-
         self.all_child_scheme_nodes = {}
+
+        assert key_attribute is None or key_attribute not in self.all_attribute_names, 'must not put key_attribute in all_attribute_names'
+        assert self.element_plurality or (not self.element_plurality and collection_name is None), 'collection_name is only valid with element_plurality=True'
 
     def __repr__( self ):
         return '<SchemeNode: %s>' % (self.element_name,)
