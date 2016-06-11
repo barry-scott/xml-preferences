@@ -65,7 +65,7 @@ Classes
 
   class xml_preferences.SchemeNode
 
-    __init__( factory, element_name, all_attribute_names=None, element_plurality=False, key_attribute=None )
+    __init__( factory, element_name, all_attribute_names=None, element_plurality=False, key_attribute=None, collection_name=None )
 
         The *SchemeNode* represents on XML element with the name *element_name*.
 
@@ -76,6 +76,9 @@ Classes
         1. The element will only appear once.
         2. The element has  *element_plurality* set to True and can appear many times and will be stored as a list of elements in its parent.
         3. The element has a *key_attribute* and can appear many times and will be stored as a dictionary in its parent.
+
+        The *collection_name* defaults to the element_name. The *collection_name* is passed to the parent 
+        setChildNodeList or setChildNodeMap functions.
 
     dumpScheme( f, indent=0 )
 
@@ -113,17 +116,17 @@ Classes
 
         setattr( self, name, node )
 
-    setChildNodeList( self, name, node )
+    setChildNodeList( self, collection_name, node )
 
         Called to save the value of the next element to added to a list. The default implemention is:
 
-        getattr( self, name ).append( node )
+        getattr( self, collection_name ).append( node )
 
-    setChildNodeMap( self, name, key, node )
+    setChildNodeMap( self, collection_name, key, node )
 
         Called to save the value of the next element into a dict using the *key*. The default implemention is:
 
-        getattr( self, name )[ key ] = node
+        getattr( self, collection_name )[ key ] = node
 
     getAttr( self, name )
 
@@ -137,15 +140,15 @@ Classes
 
         return getattr( self, name )
 
-    getChildNodeList( self, name )
+    getChildNodeList( self, collection_name )
 
-        Called to get a list of values of the *name* child nodes, which are assumed to be stored in a list. The default implemention is:
+        Called to get a list of values of the *collection_name* child nodes, which are assumed to be stored in a list. The default implemention is:
 
         return getattr( self, name )
 
-    getChildNodeMap( self, name )
+    getChildNodeMap( self, collection_name )
 
-        Called to get a list value of the *name* child nodes, which are assumed to be stored in a dict. The default implemention is:
+        Called to get a list value of the *collection_name* child nodes, which are assumed to be stored in a dict. The default implemention is:
 
         return getattr( self, name ).values()
 

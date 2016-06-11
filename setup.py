@@ -17,12 +17,14 @@ here = os.path.abspath(os.path.dirname(__file__))
 with codecs.open(os.path.join(here, 'README.rst'), encoding='utf-8') as f:
     long_description = f.read()
 
+with open('./version.txt') as f:
+    version_text = f.read()
+
 def getDevStatusFromVersion():
-    version = open('../version.txt').read().strip()
-    if 'a' in version:
+    if 'a' in version_text:
         return 'Development Status :: 3 - Alpha'
 
-    elif 'b' in version:
+    elif 'b' in version_text:
         return 'Development Status :: 4 - Beta'
 
     else:
@@ -31,7 +33,7 @@ def getDevStatusFromVersion():
 setup(
     name='xml-preferences',
 
-    version=open('../version.txt').read().strip(),
+    version=version_text,
 
     description='xml-preferences reads and writes preferences infomation from XML files',
     long_description=long_description,
@@ -69,5 +71,6 @@ setup(
     # What does your project relate to?
     keywords='development',
 
-    py_modules=["xml_preferences"],
+    packages=find_packages('Source'),
+    package_dir={'':'Source'},
 )

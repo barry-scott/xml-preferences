@@ -43,13 +43,6 @@ class Window(PreferencesNode):
         colour.fg = fg
         colour.bg = bg
 
-    def setChildNodeMap( self, name, key, node ):
-        if name == 'colour':
-            self.all_colours[ key ] = node
-
-        else:
-            raise RuntimeError( 'unknown name %r' % (name,) )
-
     def getChildNodeMap( self, name ):
         return sorted( self.all_colours.values() )
 
@@ -72,7 +65,7 @@ scheme = (Scheme(
         << SchemeNode( Edit, 'edit', ('program', 'options') )
         << SchemeNode( View, 'view', ('mode',) )
         <<  (SchemeNode( Window, 'window', ('geometry',))
-            << SchemeNode( Colour, 'colour', ('fg', 'bg'), key_attribute='name' )
+            << SchemeNode( Colour, 'colour', ('fg', 'bg'), key_attribute='name', collection_name='all_colours' )
             )
         )
     ) )

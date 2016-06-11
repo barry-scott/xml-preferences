@@ -84,10 +84,10 @@ class XmlPreferences:
 
                     if scheme_child_node.element_plurality:
                         if scheme_child_node.key_attribute is not None:
-                            node.setChildNodeMap( xml_child.tagName, scheme_child_node.key_attribute, child_node )
+                            node.setChildNodeMap( scheme_child_node.collection_name, scheme_child_node.key_attribute, child_node )
 
                         else:
-                            node.setChildNodeList( xml_child.tagName, child_node )
+                            node.setChildNodeList( scheme_child_node.collection_name, child_node )
 
                     else:
                         node.setChildNode( xml_child.tagName, child_node )
@@ -139,10 +139,10 @@ class XmlPreferences:
 
             if child_scheme.element_plurality:
                 if child_scheme.key_attribute is not None:
-                    all_child_nodes = data_node.getChildNodeMap( child_scheme.element_name )
+                    all_child_nodes = data_node.getChildNodeMap( child_scheme.collection_name )
 
                 else:
-                    all_child_nodes = data_node.getChildNodeList( child_scheme.element_name )
+                    all_child_nodes = data_node.getChildNodeList( child_scheme.collection_name )
 
             else:
                 child_node = data_node.getChildNode( child_scheme.element_name )
@@ -174,12 +174,13 @@ class SchemeNode:
     # when plurality is true the nodes can be store in a list of a dict.
     # set the key_attribute to store in a dict
     #
-    def __init__( self, factory, element_name, all_attribute_names=None, element_plurality=False, key_attribute=None ):
+    def __init__( self, factory, element_name, all_attribute_names=None, element_plurality=False, key_attribute=None, collection_name=None ):
         self.factory = factory
         self.element_name = element_name
         self.element_plurality = element_plurality
         self.all_attribute_names = all_attribute_names if all_attribute_names is not None else tuple()
         self.key_attribute = key_attribute
+        self.collection_name = collection_name if collection_name is not None else element_name
 
         # convient defaulting
         if self.key_attribute is not None:
@@ -228,11 +229,11 @@ class PreferencesNode:
     def setChildNode( self, name, node ):
         setattr( self, name, node )
 
-    def setChildNodeList( self, name, node ):
-        getattr( self, name ).append( node )
+    def setChildNodeList( self, collection_name, node ):
+        getattr( self, collection_name ).append( node )
 
-    def setChildNodeMap( self, name, key, node ):
-        getattr( self, name )[ key ] = node
+    def setChildNodeMap( self, collection_name, key, node ):
+        getattr( self, collection_name )[ key ] = node
 
     # --- save ---
     def getAttr( self, name ):
@@ -241,11 +242,11 @@ class PreferencesNode:
     def getChildNode( self, name ):
         return getattr( self, name )
 
-    def getChildNodeList( self, name ):
-        return getattr( self, name )
+    def getChildNodeList( self, collection_name ):
+        return getattr( self, collection_name )
 
-    def getChildNodeMap( self, name ):
-        return getattr( self, name ).values()
+    def getChildNodeMap( self, collection_name ):
+        return getattr( self, collection_name ).values()
 
     # --- debug ---
     def dumpNode( self, f, indent=0, prefix='' ):
