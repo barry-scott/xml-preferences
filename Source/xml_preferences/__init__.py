@@ -70,15 +70,17 @@ class XmlPreferences:
             node = scheme_node.factory()
 
         # load all attribute values in the node
-        for attr_name in scheme_node.all_attribute_names:
+        for attr_name, attr_type in scheme_node.all_attribute_info:
             # assume the factory creates an object that defaults all attributes
             if xml_parent.hasAttribute( attr_name ):
-                node.setAttr( attr_name, xml_parent.getAttribute( attr_name ) )
+                node.setAttr( attr_name, attr_type( xml_parent.getAttribute( attr_name ) ) )
 
+        children_processed = set()
         # look for supported child nodes
         for xml_child in xml_parent.childNodes:
             if xml_child.nodeType == xml.dom.minidom.Node.ELEMENT_NODE:
                 if scheme_node._hasSchemeChild( xml_child.tagName ):
+                    children_processed.add( xml_child.tagName )
                     scheme_child_node = scheme_node._getSchemeChild( xml_child.tagName )
                     child_node = self.__loadNode( scheme_child_node, xml_child )
 
@@ -92,7 +94,34 @@ class XmlPreferences:
                     else:
                         node.setChildNode( scheme_child_node.store_as, child_node )
 
-        # tell the node that it has all attributes and child node
+        # finalise all children that where missing from the XML
+        # but marked as required
+        for child_name in scheme_node._getAllSchemeChildNames():
+            if child_name not in children_processed:
+                scheme_child_node = scheme_node._getSchemeChild( child_name )
+                # cannot default plural nodes
+                if scheme_node.default:
+                    child_node = self.__createDefaultNode( scheme_child_node )
+                    node.setChildNode( scheme_child_node.store_as, child_node )
+
+        # tell the node that it has all attributes and child nodes
+        node.finaliseNode()
+
+        return node
+
+    def __createDefaultNode( self, scheme_node ):
+        assert not scheme_node.element_plurality
+
+        node = scheme_node.factory()
+
+        for child_name in scheme_node._getAllSchemeChildNames():
+            scheme_child_node = scheme_node._getSchemeChild( child_name )
+            # cannot default plural nodes
+            if scheme_child_node.default:
+                child_node = self.__createDefaultNode( scheme_child_node )
+                node.setChildNode( scheme_child_node.store_as, child_node )
+
+        # tell the node that it has all attributes and child nodes
         node.finaliseNode()
 
         return node
@@ -109,7 +138,7 @@ class XmlPreferences:
                 ,xml.sax.saxutils.quoteattr( value )) )
 
         # save all attribute values that are not None
-        for attr_name in scheme_node.all_attribute_names:
+        for attr_name, attr_type in scheme_node.all_attribute_info:
             value = data_node.getAttr( attr_name )
             if value is not None:
                 # do simple coersion of value to str
@@ -174,21 +203,34 @@ class SchemeNode:
     # when plurality is true the nodes can be store in a list of a dict.
     # set the key_attribute to store in a dict
     #
-    def __init__( self, factory, element_name, all_attribute_names=None, element_plurality=False, key_attribute=None, collection_name=None, store_as=None ):
+    # if default is true then create this node if it is missing from from the XML
+    #
+    def __init__( self, factory, element_name, all_attribute_info=None,
+                    element_plurality=False, key_attribute=None, collection_name=None,
+                    store_as=None, default=True ):
         self.parent_node = None
         self.factory = factory
         self.element_name = element_name
         self.store_as = store_as if store_as is not None else self.element_name
         self.element_plurality = element_plurality
+        self.default = default
 
-        if all_attribute_names is not None:
-            self.all_attribute_names = all_attribute_names
+        if all_attribute_info is None:
+            if hasattr( self.factory, 'xml_attribute_info' ):
+                all_attribute_info = self.factory.xml_attribute_info
 
-        elif hasattr( self.factory, 'xml_attributes' ):
-            self.all_attribute_names = self.factory.xml_attributes
+            else:
+                all_attribute_info = tuple()
 
-        else:
-            self.all_attribute_names = tuple()
+        self.all_attribute_info = []
+        for info in all_attribute_info:
+            if type(info) == str:
+                self.all_attribute_info.append( (info, str) )
+
+            else:
+                assert len(info) == 2
+                assert type(info[0]) == str
+                self.all_attribute_info.append( info )
 
         self.key_attribute = key_attribute
 
@@ -199,16 +241,20 @@ class SchemeNode:
         if self.key_attribute is not None:
             self.element_plurality = True
 
+        if self.element_plurality:
+            # collections are not defaulted
+            self.default = False
+
         self.all_child_scheme_nodes = {}
 
-        assert key_attribute is None or key_attribute not in self.all_attribute_names, 'must not put key_attribute in all_attribute_names'
+        assert key_attribute is None or key_attribute not in [name for name, type_ in self.all_attribute_info], 'must not put key_attribute in all_attribute_info'
 
     def __repr__( self ):
         return '<SchemeNode: %s>' % (self.element_name,)
 
     def dumpScheme( self, f, indent ):
         f.write( '%*s' 'SchemeNode %s store_as %r plurality %r key %r attr %r coll %r parent %r' '\n' %
-                (indent, '', self.element_name, self.store_as, self.element_plurality, self.key_attribute, self.all_attribute_names, self.collection_name, self.parent_node) )
+                (indent, '', self.element_name, self.store_as, self.element_plurality, self.key_attribute, self.all_attribute_info, self.collection_name, self.parent_node) )
 
         for child_name in self.all_child_scheme_nodes:
             child = self.all_child_scheme_nodes[ child_name ]
@@ -237,6 +283,9 @@ class SchemeNode:
 
     def _getSchemeChild( self, name ):
         return self.all_child_scheme_nodes[ name ]
+
+    def _getAllSchemeChildNames( self ):
+        return self.all_child_scheme_nodes.keys()
 
 class PreferencesNode:
     def __init__( self ):

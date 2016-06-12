@@ -15,7 +15,7 @@ class Preferences(PreferencesNode):
         self.window = None
 
 class Edit(PreferencesNode):
-    xml_attributes = ('program', 'options')
+    xml_attribute_info = ('program', 'options')
 
     def __init__( self ):
         super().__init__()
@@ -24,7 +24,7 @@ class Edit(PreferencesNode):
         self.options = None
 
 class View(PreferencesNode):
-    xml_attributes = ('mode',)
+    xml_attribute_info = ('mode',)
 
     def __init__( self ):
         super().__init__()
@@ -32,7 +32,7 @@ class View(PreferencesNode):
         self.mode = None
 
 class Window(PreferencesNode):
-    xml_attributes = ('geometry',)
+    xml_attribute_info = ('geometry',)
     def __init__( self ):
         super().__init__()
 
@@ -51,16 +51,22 @@ class Window(PreferencesNode):
     def getChildNodeMap( self, name ):
         return sorted( self.all_colours.values() )
 
-    def finaliseNode( self ):
-        if self.all_colours is None:
-            self.all_colours = ColoursCollection()
-
 class ColoursCollection(PreferencesMapNode):
     def __init__( self ):
         super().__init__()
 
+class RGB:
+    def __init__( self, text ):
+        self.R, self.G, self.B = [int(s.strip()) for s in text.split( ',' )]
+
+    def __str__( self ):
+        return '%d,%d,%d' % (self.R, self.G, self.B)
+
+    def __repr__( self ):
+        return '<RGB R:%d G:%d B:%d>' % (self.R, self.G, self.B)
+
 class Colour(PreferencesNode):
-    xml_attributes = ('fg', 'bg')
+    xml_attribute_info = (('fg', RGB), ('bg', RGB))
 
     def __init__( self, name ):
         super().__init__()
@@ -72,13 +78,17 @@ class Colour(PreferencesNode):
         self.fg = None
         self.bg = None
 
+    def __repr__( self ):
+        return '<Colour: fg=%r bg=%r>' % (self.fg, self.bg)
+
     def __lt__( self, other ):
         return self.name < other.name
+
 
 scheme = (
     Scheme
     (
-        SchemeNode( Preferences, 'preferences',  )
+        SchemeNode( Preferences, 'preferences'  )
         << SchemeNode( Edit, 'edit' )
         << SchemeNode( View, 'view' )
         <<  (SchemeNode( Window, 'window' )
@@ -101,6 +111,7 @@ test_xml_1 = '''<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 '''
 
 def main( argv ):
+    print( '%r' % (RGB( '1,4,89' ),) )
     print( '# --- dumpScheme ---' )
     scheme.dumpScheme( sys.stdout )
 

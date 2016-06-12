@@ -65,11 +65,13 @@ Classes
 
   class xml_preferences.SchemeNode
 
-    __init__( factory, element_name, all_attribute_names=None, element_plurality=False, key_attribute=None, collection_name=None )
+    __init__( factory, element_name, all_attribute_info=None, element_plurality=False, key_attribute=None, collection_name=None, store_as=None, default=True )
 
         The *SchemeNode* represents on XML element with the name *element_name*.
 
-        Any attributes that element has are listed in *all_attribute_names*.
+        Any attributes that element has are listed in *all_attribute_info*, which is a tuple/list of names or name,type pairs.
+        For example:
+          all_attribute_info=('description', ('count', int))
 
         The *SchemeNode* can represent an in three ways:
 
@@ -79,6 +81,10 @@ Classes
 
         The *collection_name* defaults to the element_name. The *collection_name* is passed to the parent 
         setChildNodeList or setChildNodeMap functions.
+
+        *store_as* defaults to the *element_name* and is used to name the python variable that this node is store in its in parent object.
+
+        When *default* is True and there is not XML that matches this SchemeNode a default value will be stored in the parent object.
 
     dumpScheme( f, indent=0 )
 
@@ -93,6 +99,10 @@ Classes
         The << operator is useful in making the scheme definition readable.
 
   class xml_preferences.PreferencesNode
+
+    For typical use all the set and get functions provide all the necessary features.
+    That can be overriden to create special behaviour. It is assumed that all
+    attribures are initised to a suitable value in __init__.
 
     __init__()
 
