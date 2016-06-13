@@ -86,7 +86,7 @@ class XmlPreferences:
 
                     if scheme_child_node.element_plurality:
                         if scheme_child_node.key_attribute is not None:
-                            node.setChildNodeMap( scheme_child_node.collection_name, scheme_child_node.key_attribute, child_node )
+                            node.setChildNodeMap( scheme_child_node.collection_name, child_node.getAttr( scheme_child_node.key_attribute ), child_node )
 
                         else:
                             node.setChildNodeList( scheme_child_node.collection_name, child_node )
@@ -100,7 +100,7 @@ class XmlPreferences:
             if child_name not in children_processed:
                 scheme_child_node = scheme_node._getSchemeChild( child_name )
                 # cannot default plural nodes
-                if scheme_node.default:
+                if scheme_child_node.default:
                     child_node = self.__createDefaultNode( scheme_child_node )
                     node.setChildNode( scheme_child_node.store_as, child_node )
 
@@ -108,6 +108,9 @@ class XmlPreferences:
         node.finaliseNode()
 
         return node
+
+    def default( self ):
+        return self.__createDefaultNode( self.scheme.document_root )
 
     def __createDefaultNode( self, scheme_node ):
         assert not scheme_node.element_plurality
@@ -306,6 +309,7 @@ class PreferencesNode:
         getattr( self, collection_name ).append( node )
 
     def setChildNodeMap( self, collection_name, key, node ):
+        assert key is not None
         getattr( self, collection_name )[ key ] = node
 
     # --- save ---

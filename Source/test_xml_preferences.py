@@ -115,7 +115,14 @@ def main( argv ):
     print( '# --- dumpScheme ---' )
     scheme.dumpScheme( sys.stdout )
 
+    print( '# --- prefs default ---' )
     xml_prefs = XmlPreferences( scheme )
+    prefs = xml_prefs.default()
+
+    print( '# --- dumpNode ---' )
+    prefs.dumpNode( sys.stdout )
+
+
     prefs = xml_prefs.loadString( test_xml_1 )
 
     print( '# --- prefs API ---' )
