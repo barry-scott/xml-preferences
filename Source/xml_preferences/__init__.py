@@ -117,6 +117,12 @@ class XmlPreferences:
 
         node = scheme_node.factory()
 
+        # load all attribute values in the node from the available defaults
+        for attr_name, attr_type in scheme_node.all_attribute_info:
+            # assume the factory creates an object that defaults all attributes
+            if attr_name in scheme_node.default_attributes:
+                node.setAttr( attr_name, attr_type( scheme_node.default_attributes[ attr_name ] ) )
+
         for child_name in scheme_node._getAllSchemeChildNames():
             scheme_child_node = scheme_node._getSchemeChild( child_name )
             # cannot default plural nodes
@@ -210,13 +216,14 @@ class SchemeNode:
     #
     def __init__( self, factory, element_name, all_attribute_info=None,
                     element_plurality=False, key_attribute=None, collection_name=None,
-                    store_as=None, default=True ):
+                    store_as=None, default=True, default_attributes=None ):
         self.parent_node = None
         self.factory = factory
         self.element_name = element_name
         self.store_as = store_as if store_as is not None else self.element_name
         self.element_plurality = element_plurality
         self.default = default
+        self.default_attributes = default_attributes if default_attributes is not None else {}
 
         if all_attribute_info is None:
             if hasattr( self.factory, 'xml_attribute_info' ):

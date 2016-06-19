@@ -65,7 +65,7 @@ Classes
 
   class xml_preferences.SchemeNode
 
-    __init__( factory, element_name, all_attribute_info=None, element_plurality=False, key_attribute=None, collection_name=None, store_as=None, default=True )
+    __init__( factory, element_name, all_attribute_info=None, element_plurality=False, key_attribute=None, collection_name=None, store_as=None, default=True, default_attributes=None )
 
         The *SchemeNode* represents on XML element with the name *element_name*.
 
@@ -85,6 +85,8 @@ Classes
         *store_as* defaults to the *element_name* and is used to name the python variable that this node is store in its in parent object.
 
         When *default* is True and there is not XML that matches this SchemeNode a default value will be stored in the parent object.
+
+        When the node is defaulted the attributes of the node can be set from a dictionary pass as *default_attributes*.
 
     dumpScheme( f, indent=0 )
 
