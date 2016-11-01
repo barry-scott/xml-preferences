@@ -147,7 +147,7 @@ class XmlPreferences:
                 ,xml.sax.saxutils.quoteattr( value )) )
 
         # save all attribute values that are not None
-        for attr_name, attr_type in scheme_node.all_attribute_info:
+        for attr_name, attr_type in sorted( scheme_node.all_attribute_info ):
             value = data_node.getAttr( attr_name )
             if value is not None:
                 # do simple coersion of value to str
@@ -172,7 +172,7 @@ class XmlPreferences:
         f.write( '>' '\n' )
 
         # write child elements
-        for child_name in scheme_node.all_child_scheme_nodes:
+        for child_name in sorted( scheme_node.all_child_scheme_nodes ):
             child_scheme = scheme_node.all_child_scheme_nodes[ child_name ]
 
             if child_scheme.element_plurality:
@@ -330,7 +330,8 @@ class PreferencesNode:
         return getattr( self, collection_name )
 
     def getChildNodeMap( self, collection_name ):
-        return getattr( self, collection_name ).values()
+        collection = getattr( self, collection_name )
+        return [collection[key] for key in sorted( collection.keys() )]
 
     # --- debug ---
     def dumpNode( self, f, indent=0, prefix='' ):

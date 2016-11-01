@@ -18,7 +18,7 @@ with codecs.open(os.path.join(here, 'README.rst'), encoding='utf-8') as f:
     long_description = f.read()
 
 with open('./version.txt') as f:
-    version_text = f.read()
+    version_text = f.read().strip()
 
 def getDevStatusFromVersion():
     if 'a' in version_text:
