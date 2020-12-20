@@ -1,5 +1,5 @@
 Module xml_preferences
-------------------
+----------------------
 
 xml_preferences uses a scheme to create a hierarchy of objects that
 represent the data stored in an XML files. CHanges to the objects can
@@ -71,7 +71,8 @@ Classes
 
         Any attributes that element has are listed in *all_attribute_info*, which is a tuple/list of names or name,type pairs.
         For example:
-          all_attribute_info=('description', ('count', int))
+
+            all_attribute_info=('description', ('count', int))
 
         The *SchemeNode* can represent an in three ways:
 

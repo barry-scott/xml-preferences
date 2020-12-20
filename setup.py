@@ -4,6 +4,7 @@ setup.py for xml_preferences
 https://github.com/barry-scott/xml-preferences.git
 
 """
+version_text = '1.1.5'
 
 # Always prefer setuptools over distutils
 from setuptools import setup, find_packages
@@ -16,9 +17,6 @@ here = os.path.abspath(os.path.dirname(__file__))
 # Get the long description from the README file
 with codecs.open(os.path.join(here, 'README.rst'), encoding='utf-8') as f:
     long_description = f.read()
-
-with open('./version.txt') as f:
-    version_text = f.read().strip()
 
 def getDevStatusFromVersion():
     if 'a' in version_text:
@@ -37,6 +35,7 @@ setup(
 
     description='xml-preferences reads and writes preferences infomation from XML files',
     long_description=long_description,
+    long_description_content_type='text/x-rst',
 
     # The project's main homepage.
     url='https://github.com/barry-scott/xml-preferences',
