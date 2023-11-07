@@ -7,6 +7,12 @@ import xml.parsers.expat
 import xml.dom.minidom
 import xml.sax.saxutils
 
+VERSION = '1.1.6'
+
+__all__ = ('VERSION', 'ParseError', 'XmlPreferences',
+            'Scheme', 'SchemeNode', 'PreferencesNode',
+            'PreferencesCollectionNode', 'PreferencesMapNode', 'PreferencesListNode')
+
 class ParseError(Exception):
     def __init__( self, value ):
         self.value = value

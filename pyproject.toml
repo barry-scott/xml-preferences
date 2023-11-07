@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools>=61.0", "setuptools-scm"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "xml-preferences"
+authors = [
+    {name = "Barry Scott", email = "barry@barrys-emacs.org"},
+]
+description = "xml-preferences reads and writes preferences infomation from XML files."
+readme = "README.rst"
+requires-python = ">=3.10"
+license = {text = "Apache-2.0"}
+keywords = [ "development" ]
+classifiers = [
+    "Intended Audience :: End Users/Desktop",
+    "Topic :: Utilities",
+    "Environment :: Console",
+    "Programming Language :: Python :: 3",
+]
+dependencies = []
+dynamic = ["version"]
+
+[tool.setuptools.dynamic]
+version = {attr = "xml_preferences.VERSION"}
+
+[project.urls]
+"Homepage" = "https://github.com/barry-scott/xml-preferences"
+"Bug Tracker" = "https://github.com/barry-scott/xml-preferences/issues"
+
+
